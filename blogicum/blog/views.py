@@ -2,6 +2,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
+from django.http.request import HttpRequest as HttpRequest
+from django.http.response import HttpResponse as HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.generic import (
@@ -51,15 +53,21 @@ class BlogDetailView(DetailView):
     model = Post
     template_name = 'blog/detail.html'
 
+    # def get_object(self) -> Model:
+    #     return super().get_object(queryset)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Записываем в переменную form пустой объект формы.
         context['form'] = CommentForm()
         # context['form'] = BlogForm()
         # Запрашиваем все поздравления для выбранного дня рождения.
-        print(dir(self.object))
+        # print(dir(self.object))
+        # print(self.object.comments.all())
         # context['comments'] = self.object.posts.select_related('author')
         # print('MISTAKE?')
+
+        # context['comments'] = self.object.comments.all()
 
         context['comments'] = self.object.comments.all()
         # context['post'] = Post.objects.all()
@@ -72,33 +80,74 @@ class BlogDetailView(DetailView):
 
 
 # КОММЕНТАРИИ
-class CommentCreateView(CreateView):
-    '''Создание комментариев?'''
+class CommentMixin:
     model = Comment
+
+class CommentCreateView(CommentMixin, CreateView):
+    '''Создание комментариев?'''
     form_class = CommentForm
     template_name = 'blog/comment.html'
     success_url = reverse_lazy('blog:index')
 
+
+    def dispatch(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.comment = get_object_or_404(Post, pk=kwargs['pk'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.post = self.comment
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('blog:post_detail', kwargs={'pk': self.comment.pk})
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     # print(dir(self))
+    #     context['form'] = CommentForm()
+    #     # print(dir(self.object))
+    #     context['comments'] = self.object.posts.select_related('author')
+    #     print(context)
+    #     # context['comment'] = self.object.posts.all()
+    #     return context
+
+
+class CommentUpdateView(CommentMixin, UpdateView):
+    template_name = 'blog/comment.html'
+    form_class = CommentForm
+
+    def get_object(self):
+        comment_id = self.kwargs.get('comment_id')
+        return get_object_or_404(Comment, pk=comment_id)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        print(dir(self))
-        context['form'] = CommentForm()
-        print(dir(self.object))
-        # context['comments'] = self.object.posts.select_related('author')
-        context['comments'] = self.object.posts.all()
+        context['comment'] = self.get_object()
         return context
 
-
-class CommentUpdateView(UpdateView):
-    model = Comment
-
-
-class CommentDeleteView(DeleteView):
-    model = Comment
+    def get_success_url(self):
+        return reverse('blog:post_detail', kwargs={'pk': self.object.post.pk})
 
 
-class CommentDetailView(DetailView):
-    model = Comment
+class CommentDeleteView(CommentMixin, DeleteView):
+    template_name = 'blog/comment.html'
+
+    def get_object(self):
+        comment_id = self.kwargs.get('comment_id')
+        return get_object_or_404(Comment, pk=comment_id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['comment'] = self.get_object()
+        return context
+
+    def get_success_url(self) -> str:
+        return reverse('blog:post_detail', kwargs={'pk': self.object.post.pk})
+
+
+class CommentDetailView(CommentMixin, DetailView):
+    ...
 
 
 @login_required
