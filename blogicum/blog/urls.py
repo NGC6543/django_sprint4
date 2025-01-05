@@ -20,11 +20,8 @@ urlpatterns = [
     # path('posts/<int:id>/edit_comment/<int:comment_id>/', views.CommentUpdateView.as_view(), name='edit_comment'),
     path('posts/<int:pk>/edit_comment/<int:comment_id>/', views.CommentUpdateView.as_view(), name='edit_comment'),
     path('posts/<int:pk>/delete_comment/<int:comment_id>/', views.CommentDeleteView.as_view(), name='delete_comment'),
-    # path('profile/<slug:username>/', views.profile_detail, name='profile'),
-    path('profile/<slug:slug>/', views.ProfileDetailView.as_view(), name='profile'),
-    path('profile/<slug:username>/edit/', views.ProfileUpdateView.as_view(), name='edit_profile'),
-    path('profile/<slug:username>/delete/', views.ProfileDetailView.as_view(), name='delete'),
-
+    path('profile/edit/', views.ProfileUpdateView.as_view(), name='edit_profile'),
+    path('profile/<slug:username>/', views.ProfileDetailView.as_view(), name='profile'),
 ]
 # urlpatterns = [
 #     path('', views.index, name='index'),

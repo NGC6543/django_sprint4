@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
@@ -6,15 +7,15 @@ from django.utils import timezone
 from django.views.generic import (
     ListView, DeleteView, CreateView, UpdateView, DetailView
 )
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth.decorators import login_required
 
 from .models import Post, Category, User, Comment
-from .forms import BlogForm, CommentForm
+from .forms import BlogForm, CommentForm, ProfileForm
 
 
 NUMBER_OF_POSTS = 5
-PAGINATE_PAGE = 10
+POSTS_IN_PAGE = 10
 
 
 class BlogCreateView(CreateView):
@@ -22,7 +23,7 @@ class BlogCreateView(CreateView):
     model = Post
     form_class = BlogForm
     template_name = 'blog/create.html'
-    success_url = reverse_lazy('blog:profile')
+    success_url = reverse_lazy('blog:index')
 
 
 # def create_post(request):
@@ -34,7 +35,7 @@ class BlogListView(ListView):
     '''Отвечает за пейджинг'''
     model = Post
     ordering = 'id'
-    paginate_by = PAGINATE_PAGE
+    paginate_by = POSTS_IN_PAGE
     template_name = 'blog/index.html'
 
 
@@ -119,40 +120,41 @@ def add_comment(request, pk):
     return redirect('blog:detail', pk=pk)
 
 
+# ПРОФАЙЛ
 class UserProfileMixin:
     model = User
 
 
-# ПРОФАЙЛ
 class ProfileDetailView(UserProfileMixin, DetailView):
     template_name = 'blog/profile.html'
     context_object_name = 'profile'
+    slug_url_kwarg = 'username'
 
-    def get_object(self, queryset=None) -> Model:
+    def get_object(self) -> Model:
         username = self.kwargs.get('username')
         return get_object_or_404(User, username=username)
-        # return super().get_object(queryset)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        get_posts = Post.objects.select_related('author').filter(
+            author=self.object).order_by('id')
+        paginator = Paginator(get_posts, POSTS_IN_PAGE).get_page(
+            self.request.GET.get('page'))
+        context['page_obj'] = paginator
+
+        return context
 
 
 class ProfileUpdateView(UserProfileMixin, UpdateView):
-    pass
+    template_name = 'blog/user.html'
+    form_class = ProfileForm
+    slug_url_kwarg = 'username'
 
+    def get_object(self):
+        return self.request.user
 
-class ProfileDeleteView(UserProfileMixin, DeleteView):
-    pass
-
-
-def profile_detail(request, username):
-    template = 'blog/profile.html'
-    profile_list = Post.objects.select_related(
-        'author',
-    ).filter(Q(author__username=username))
-    # profile_list = User.objects.all()
-    # context = {'profile': profile_list}
-    context = {'profile': User.objects.values()} # Использовав это выходит Регистрация
-    return render(request, template, context)
-
-
+    def get_success_url(self) -> str:
+        return reverse('blog:profile', kwargs={'username': self.request.user.username})
 
 
 def get_selected_objects():
