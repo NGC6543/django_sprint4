@@ -21,16 +21,23 @@ POSTS_IN_PAGE = 10
 
 
 class BlogCreateView(CreateView):
-    '''Создание постов?'''
+    '''Создание постов'''
     model = Post
     form_class = BlogForm
     template_name = 'blog/create.html'
     success_url = reverse_lazy('blog:index')
+    context_object_name = 'post'
 
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
-# def create_post(request):
-#     tempalte = 'blog/create.html'
-#     return render(request, tempalte)
+    def get_context_data(self, **kwargs: reverse_lazy):
+        context = super().get_context_data(**kwargs)
+        return context
+
+    def get_success_url(self) -> str:
+        return reverse('blog:profile', kwargs={'username': self.request.user})
 
 
 class BlogListView(ListView):
@@ -43,10 +50,19 @@ class BlogListView(ListView):
 
 class BlogUpdateView(UpdateView):
     model = Post
+    form_class = BlogForm
+    template_name = 'blog/create.html'
+
+    def get_success_url(self) -> str:
+        return reverse('blog:profile', kwargs={'username': self.request.user})
 
 
 class BlogDeleteView(DeleteView):
     model = Post
+    template_name = 'blog/create.html'
+
+    def get_success_url(self) -> str:
+        return reverse('blog:profile', kwargs={'username': self.request.user})
 
 
 class BlogDetailView(DetailView):
@@ -58,24 +74,40 @@ class BlogDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Записываем в переменную form пустой объект формы.
         context['form'] = CommentForm()
-        # context['form'] = BlogForm()
-        # Запрашиваем все поздравления для выбранного дня рождения.
-        # print(dir(self.object))
-        # print(self.object.comments.all())
-        # context['comments'] = self.object.posts.select_related('author')
-        # print('MISTAKE?')
-
-        # context['comments'] = self.object.comments.all()
-
         context['comments'] = self.object.comments.all()
-        # context['post'] = Post.objects.all()
         # context['comments'] = (
         #     # Дополнительно подгружаем авторов комментариев,
         #     # чтобы избежать множества запросов к БД.
         #     self.object.comment.select_related('author')
         # )
+        return context
+
+
+class CategoryListView(ListView):
+    model = Category
+    template_name = 'blog/category.html'
+    paginate_by = POSTS_IN_PAGE
+    ordering = 'id'
+    context_object_name = 'post'
+
+    # def get_queryset(self):
+    #     category_slug = self.kwargs.get('category')
+    #     return Post.objects.filter(category__slug=category_slug)
+
+    # def get(self, request: HttpRequest, *args: reverse_lazy, **kwargs: reverse_lazy) -> HttpResponse:
+    #     return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs: reverse_lazy):
+        category_slug = self.kwargs.get('category')
+        context = super().get_context_data(**kwargs)
+
+        context['category'] = get_object_or_404(
+        Category,
+        slug=category_slug,
+        is_published=True
+        )
+        context['post'] = Post.objects.all()
         return context
 
 
@@ -89,7 +121,6 @@ class CommentCreateView(CommentMixin, CreateView):
     template_name = 'blog/comment.html'
     success_url = reverse_lazy('blog:index')
 
-
     def dispatch(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.comment = get_object_or_404(Post, pk=kwargs['pk'])
         return super().dispatch(request, *args, **kwargs)
@@ -101,16 +132,6 @@ class CommentCreateView(CommentMixin, CreateView):
 
     def get_success_url(self):
         return reverse('blog:post_detail', kwargs={'pk': self.comment.pk})
-
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     # print(dir(self))
-    #     context['form'] = CommentForm()
-    #     # print(dir(self.object))
-    #     context['comments'] = self.object.posts.select_related('author')
-    #     print(context)
-    #     # context['comment'] = self.object.posts.all()
-    #     return context
 
 
 class CommentUpdateView(CommentMixin, UpdateView):
@@ -185,11 +206,13 @@ class ProfileDetailView(UserProfileMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # self.object???
         get_posts = Post.objects.select_related('author').filter(
             author=self.object).order_by('id')
         paginator = Paginator(get_posts, POSTS_IN_PAGE).get_page(
             self.request.GET.get('page'))
         context['page_obj'] = paginator
+        # context['post'] = Post.objects.select_related('category').filter(category__slug=self.request.user)
 
         return context
 
