@@ -16,8 +16,6 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ('text',)
-        # fields = '__all__'
-        # exclude = ('post',)
 
 
 class ProfileForm(forms.ModelForm):

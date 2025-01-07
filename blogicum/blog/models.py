@@ -1,12 +1,11 @@
-from django.contrib.auth import get_user_model
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from core.models import IsPublishedAndCreatedModel, TitleModel, MAX_LENGTH
 
 
 User = get_user_model()
-# User.objects.get(email='test@mail.com')
 
 
 class Post(IsPublishedAndCreatedModel, TitleModel):
@@ -53,7 +52,7 @@ class Post(IsPublishedAndCreatedModel, TitleModel):
         return self.title
 
     def get_absolute_url(self):
-        return reverse("blog:profile", kwargs={"pk": self.pk})
+        return reverse("blog:post_detail", kwargs={'pk': self.pk})
 
 
 
@@ -103,7 +102,6 @@ class Comment(models.Model):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         ordering = ('created_at',)
-
 
     def __str__(self):
         return self.text

@@ -4,9 +4,6 @@ from django.conf.urls.static import static
 from django.contrib.auth.forms import UserCreationForm
 from django.views.generic.edit import CreateView
 from django.urls import include, path, reverse_lazy
-from django.views.generic import TemplateView
-
-from django.contrib.auth.views import LogoutView, LoginView
 
 
 handler404 = 'pages.views.page_not_found'

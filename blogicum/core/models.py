@@ -6,7 +6,7 @@ MAX_LENGTH = 256
 
 class IsPublishedAndCreatedModel(models.Model):
     """Абстрактный класс для наследования
-    полей is_published и created_at
+    полей is_published и created_at.
     """
 
     is_published = models.BooleanField(
@@ -22,7 +22,7 @@ class IsPublishedAndCreatedModel(models.Model):
 
 class TitleModel(models.Model):
     """Абстрактный класс для наследования
-    поля title
+    поля title.
     """
 
     title = models.CharField('Заголовок', max_length=MAX_LENGTH)
