@@ -55,7 +55,6 @@ class Post(IsPublishedAndCreatedModel, TitleModel):
         return reverse("blog:post_detail", kwargs={'pk': self.pk})
 
 
-
 class Category(IsPublishedAndCreatedModel, TitleModel):
     """Таблица Категорий"""
 
@@ -96,7 +95,8 @@ class Comment(models.Model):
         related_name='comments',
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='authors')
+    author = models.ForeignKey(User, on_delete=models.CASCADE,
+                               related_name='authors')
 
     class Meta:
         verbose_name = 'Комментарий'

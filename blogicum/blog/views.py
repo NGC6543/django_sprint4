@@ -17,12 +17,14 @@ POSTS_IN_PAGE = 10
 
 
 class PostMixin:
-    '''Объект для наследования модели Post.'''
+    """Объект для наследования модели Post."""
+
     model = Post
 
 
 class PostCreateView(LoginRequiredMixin, PostMixin, CreateView):
-    '''Объект для создание постов.'''
+    """Объект для создание постов."""
+
     form_class = BlogForm
     template_name = 'blog/create.html'
     context_object_name = 'post'
@@ -36,7 +38,8 @@ class PostCreateView(LoginRequiredMixin, PostMixin, CreateView):
 
 
 class PostListView(PostMixin, ListView):
-    '''Объект для отображения постов на главной странице.'''
+    """Объект для отображения постов на главной странице."""
+
     queryset = Post.objects.select_related(
         'author',
         'category'
@@ -51,7 +54,8 @@ class PostListView(PostMixin, ListView):
 
 
 class PostUpdateView(LoginRequiredMixin, PostMixin, UpdateView):
-    '''Объект для обновление постов.'''
+    """Объект для обновление постов."""
+
     form_class = BlogForm
     template_name = 'blog/create.html'
 
@@ -72,7 +76,8 @@ class PostUpdateView(LoginRequiredMixin, PostMixin, UpdateView):
 
 
 class PostDeleteView(LoginRequiredMixin, PostMixin, DeleteView):
-    '''Объект для удаления постов.'''
+    """Объект для удаления постов."""
+
     template_name = 'blog/create.html'
 
     def get_object(self):
@@ -87,7 +92,8 @@ class PostDeleteView(LoginRequiredMixin, PostMixin, DeleteView):
 
 
 class PostsDetailView(PostMixin, DetailView):
-    '''Объект для отображения определенного поста.'''
+    """Объект для отображения определенного поста."""
+
     template_name = 'blog/detail.html'
 
     def get_object(self):
@@ -106,7 +112,8 @@ class PostsDetailView(PostMixin, DetailView):
 
 
 class CategoryListView(ListView):
-    '''Объект для отображения категорий.'''
+    """Объект для отображения категорий."""
+
     model = Category
     template_name = 'blog/category.html'
     paginate_by = POSTS_IN_PAGE
@@ -133,12 +140,14 @@ class CategoryListView(ListView):
 
 
 class CommentMixin:
-    '''Объект для наследования модели Comment.'''
+    """Объект для наследования модели Comment."""
+
     model = Comment
 
 
 class CommentCreateView(LoginRequiredMixin, CommentMixin, CreateView):
-    '''Объект для создания комментариев.'''
+    """Объект для создания комментариев."""
+
     form_class = CommentForm
     template_name = 'blog/comment.html'
 
@@ -156,14 +165,16 @@ class CommentCreateView(LoginRequiredMixin, CommentMixin, CreateView):
 
 
 class CommentUpdateView(LoginRequiredMixin, CommentMixin, UpdateView):
-    '''Объект для редактирования комментариев.'''
+    """Объект для редактирования комментариев."""
+
     template_name = 'blog/comment.html'
     form_class = CommentForm
 
     def get_object(self):
         comment_id = self.kwargs.get('comment_id')
         comment = get_object_or_404(Comment, pk=comment_id)
-        if comment.author != self.request.user and not self.request.user.is_staff:
+        if (comment.author != self.request.user
+                and not self.request.user.is_staff):
             raise Http404('You do not have permission to edit this comment.')
         return comment
 
@@ -177,7 +188,8 @@ class CommentUpdateView(LoginRequiredMixin, CommentMixin, UpdateView):
 
 
 class CommentDeleteView(LoginRequiredMixin, CommentMixin, DeleteView):
-    '''Объект для удаления комментариев.'''
+    """Объект для удаления комментариев."""
+
     template_name = 'blog/comment.html'
 
     def get_object(self):
@@ -197,12 +209,14 @@ class CommentDeleteView(LoginRequiredMixin, CommentMixin, DeleteView):
 
 
 class UserProfileMixin:
-    '''Объект для наследования модели User.'''
+    """Объект для наследования модели User."""
+
     model = User
 
 
 class ProfileDetailView(UserProfileMixin, DetailView, LoginRequiredMixin):
-    '''Объект отображения профиля пользователя.'''
+    """Объект отображения профиля пользователя."""
+
     template_name = 'blog/profile.html'
     context_object_name = 'profile'
     slug_url_kwarg = 'username'
@@ -214,7 +228,8 @@ class ProfileDetailView(UserProfileMixin, DetailView, LoginRequiredMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         get_posts = Post.objects.select_related('author').filter(
-            author=self.object).annotate(comment_count=Count('comments')).order_by('-pub_date')
+            author=self.object).annotate(
+                comment_count=Count('comments')).order_by('-pub_date')
         paginator = Paginator(get_posts, POSTS_IN_PAGE).get_page(
             self.request.GET.get('page'))
         context['page_obj'] = paginator
@@ -222,7 +237,8 @@ class ProfileDetailView(UserProfileMixin, DetailView, LoginRequiredMixin):
 
 
 class ProfileUpdateView(LoginRequiredMixin, UserProfileMixin, UpdateView):
-    '''Объект для редактирования профиля пользователя.'''
+    """Объект для редактирования профиля пользователя."""
+
     template_name = 'blog/user.html'
     form_class = ProfileForm
     slug_url_kwarg = 'username'
@@ -231,4 +247,5 @@ class ProfileUpdateView(LoginRequiredMixin, UserProfileMixin, UpdateView):
         return self.request.user
 
     def get_success_url(self) -> str:
-        return reverse('blog:profile', kwargs={'username': self.request.user.username})
+        return reverse('blog:profile', kwargs={'username':
+                                               self.request.user.username})
