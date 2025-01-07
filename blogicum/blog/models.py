@@ -6,6 +6,7 @@ from core.models import IsPublishedAndCreatedModel, TitleModel, MAX_LENGTH
 
 
 User = get_user_model()
+# User.objects.get(email='test@mail.com')
 
 
 class Post(IsPublishedAndCreatedModel, TitleModel):
@@ -41,11 +42,12 @@ class Post(IsPublishedAndCreatedModel, TitleModel):
         related_name='posts',
         related_query_name='post'
     )
+    image = models.ImageField('Фото', upload_to='posts_images', blank=True)
 
     class Meta:
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
-        ordering = ('-pub_date',)
+        ordering = ('pub_date',)
 
     def __str__(self):
         return self.title
@@ -98,4 +100,10 @@ class Comment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='authors')
 
     class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
         ordering = ('created_at',)
+
+
+    def __str__(self):
+        return self.text
