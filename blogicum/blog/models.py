@@ -52,7 +52,7 @@ class Post(IsPublishedAndCreatedModel, TitleModel):
         return self.title
 
     def get_absolute_url(self):
-        return reverse("blog:post_detail", kwargs={'pk': self.pk})
+        return reverse("blog:post_detail", kwargs={'post_id': self.pk})
 
 
 class Category(IsPublishedAndCreatedModel, TitleModel):
@@ -96,7 +96,7 @@ class Comment(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE,
-                               related_name='authors')
+                               related_name='comments')
 
     class Meta:
         verbose_name = 'Комментарий'
