@@ -20,17 +20,12 @@ post_urls = [
          views.CommentDeleteView.as_view(), name='delete_comment'),
 ]
 
-profile_urls = [
-    path('edit_profile/', views.ProfileUpdateView.as_view(), name='edit_profile'),
-    path('<str:username>/', views.ProfileListView.as_view(),
-         name='profile'),
-]
-
 urlpatterns = [
     path('', views.PostListView.as_view(), name='index'),
     path('posts/', include(post_urls)),
-    path('profile/', include(profile_urls)),
-#     path('profile/', views.ProfileUpdateView.as_view(), name='edit_profile'),
+    path('edit/', views.ProfileUpdateView.as_view(), name='edit_profile'),
+    path('profile/<str:username>/', views.ProfileListView.as_view(),
+         name='profile'),
     path('category/<slug:category>/', views.CategoryListView.as_view(),
          name='category_posts'),
 ]
