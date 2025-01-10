@@ -10,11 +10,9 @@ class BlogForm(forms.ModelForm):
         exclude = ('author',)
         widgets = {
             'pub_date': forms.DateTimeInput(
-                attrs={
-                    'type': 'date',
-                    }
+                attrs={'type': 'date'}
                 )
-            }
+                }
 
 
 class CommentForm(forms.ModelForm):

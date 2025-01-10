@@ -6,7 +6,8 @@ from . import views
 app_name = 'blog'
 
 post_urls = [
-    path('<int:post_id>/', views.PostsDetailView.as_view(), name='post_detail'),
+    path('<int:post_id>/', views.PostsDetailView.as_view(),
+         name='post_detail'),
     path('create/', views.PostCreateView.as_view(), name='create_post'),
     path('<int:post_id>/edit/', views.PostUpdateView.as_view(),
          name='edit_post'),

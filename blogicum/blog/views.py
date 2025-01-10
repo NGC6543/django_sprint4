@@ -1,7 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
 from django.http import Http404
-from django.http.request import HttpRequest as HttpRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -20,6 +19,7 @@ def get_post_object(filter=False, annotate_sort=False):
     """Функция для получения данных модели Post.
     Данные можно получить дополнительно их отфильтровав
     или добавив счётчик комментариев и сортировку."""
+
     post_query = Post.objects.select_related(
         'author',
         'category'
@@ -146,6 +146,7 @@ class CategoryListView(ListView):
 
 class CommentMixin:
     """Миксин для объектов редактирования и удаления комментариев."""
+
     model = Comment
 
     def get_object(self):
