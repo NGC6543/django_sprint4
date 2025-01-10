@@ -17,6 +17,9 @@ POSTS_IN_PAGE = 10
 
 
 def get_post_object(filter=False, annotate_sort=False):
+    """Функция для получения данных модели Post.
+    Данные можно получить дополнительно их отфильтровав
+    или добавив счётчик комментариев и сортировку."""
     post_query = Post.objects.select_related(
         'author',
         'category'
@@ -125,6 +128,7 @@ class CategoryListView(ListView):
     context_object_name = 'post'
 
     def get_object_category_by_slug(self, slug):
+        """Метод для получения категории"""
         return get_object_or_404(Category, slug=slug, is_published=True)
 
     def get_queryset(self):
@@ -141,6 +145,7 @@ class CategoryListView(ListView):
 
 
 class CommentMixin:
+    """Миксин для объектов редактирования и удаления комментариев."""
     model = Comment
 
     def get_object(self):
