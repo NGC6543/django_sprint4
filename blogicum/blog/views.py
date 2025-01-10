@@ -18,8 +18,8 @@ POSTS_IN_PAGE = 10
 def get_post_object(filter=False, annotate_sort=False):
     """Функция для получения данных модели Post.
     Данные можно получить дополнительно их отфильтровав
-    или добавив счётчик комментариев и сортировку."""
-
+    или добавив счётчик комментариев и сортировку.
+    """
     post_query = Post.objects.select_related(
         'author',
         'category'

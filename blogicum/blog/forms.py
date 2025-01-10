@@ -11,8 +11,8 @@ class BlogForm(forms.ModelForm):
         widgets = {
             'pub_date': forms.DateTimeInput(
                 attrs={'type': 'date'}
-                )
-                }
+            )
+        }
 
 
 class CommentForm(forms.ModelForm):
