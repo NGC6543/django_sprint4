@@ -11,8 +11,8 @@ class CommentMixin:
 
     def get_object(self):
         return get_object_or_404(Comment,
-                            pk=self.kwargs.get('comment_id'),
-                            post_id=self.kwargs.get('post_id'))
+                   pk=self.kwargs.get('comment_id'),
+                   post_id=self.kwargs.get('post_id'))
 
     def dispatch(self, request, *args, **kwargs):
         comment = self.get_object()
