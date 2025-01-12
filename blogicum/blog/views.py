@@ -10,6 +10,7 @@ from django.views.generic import (
 
 from .models import Post, Category, User, Comment
 from .forms import BlogForm, CommentForm, ProfileForm
+from .mixin import CommentMixin
 
 
 POSTS_IN_PAGE = 10
@@ -92,8 +93,8 @@ class PostDeleteView(LoginRequiredMixin, DeleteView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self) -> str:
-        return reverse('blog:profile', kwargs={'username':
-                                               self.request.user.username})
+        return reverse('blog:profile',
+                       kwargs={'username': self.request.user.username})
 
 
 class PostsDetailView(DetailView):
@@ -131,40 +132,14 @@ class CategoryListView(ListView):
                                  is_published=True)
 
     def get_queryset(self):
-        self.get_category = self.get_object_category_by_slug()
+        get_category = self.get_object_category_by_slug()
         return get_post_object(filter=True, annotate_sort=True).filter(
-            category=self.get_category)
+            category=get_category)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['category'] = self.get_category
+        context['category'] = self.get_object_category_by_slug()
         return context
-
-
-class CommentMixin:
-    """Миксин для объектов редактирования и удаления комментариев."""
-
-    model = Comment
-
-    def get_object(self):
-        return get_object_or_404(Comment,
-                                 pk=self.kwargs.get('comment_id'),
-                                 post_id=self.kwargs.get('post_id'))
-
-    def dispatch(self, request, *args, **kwargs):
-        comment = self.get_object()
-        if comment.author != self.request.user:
-            return redirect('blog:post_detail', post_id=comment.post_id)
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['comment'] = self.get_object()
-        return context
-
-    def get_success_url(self):
-        return reverse('blog:post_detail', kwargs={'post_id':
-                                                   self.kwargs.get('post_id')})
 
 
 class CommentCreateView(LoginRequiredMixin, CreateView):
@@ -180,8 +155,8 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('blog:post_detail', kwargs={'post_id':
-                                                   self.kwargs['post_id']})
+        return reverse('blog:post_detail',
+                       kwargs={'post_id': self.kwargs['post_id']})
 
 
 class CommentUpdateView(LoginRequiredMixin, CommentMixin, UpdateView):
@@ -212,10 +187,10 @@ class ProfileListView(ListView):
         return get_object_or_404(User, username=username)
 
     def get_queryset(self):
-        query = get_post_object(filter=self.request.user != self.get_object(),
-                                annotate_sort=True).filter(
-                                    author__username=self.kwargs['username'])
-        return query
+        user_object = self.get_object()
+        return get_post_object(filter=self.request.user != user_object,
+                               annotate_sort=True).filter(
+                                   author=user_object)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -235,5 +210,5 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         return self.request.user
 
     def get_success_url(self) -> str:
-        return reverse('blog:profile', kwargs={'username':
-                                               self.request.user.username})
+        return reverse('blog:profile',
+                       kwargs={'username': self.request.user.username})
